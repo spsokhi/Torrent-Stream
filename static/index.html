@@ -1,0 +1,145 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Torrent stream</title>
+<link rel="stylesheet" href="/static/app.css">
+
+<div class="wrap">
+  <h1>Torrent stream</h1>
+  <p class="sub">Runs on your machine. Pieces are fetched in playback order and served to the player below.</p>
+
+  <div class="bar">
+    <input type="text" id="src" placeholder="magnet:?xt=urn:btih:… or a path to a .torrent file" spellcheck="false">
+    <button class="go" id="go">Play</button>
+    <button id="halt" disabled>Stop</button>
+  </div>
+
+  <div class="strat">
+    <div class="seg">
+      <button data-mode="streaming" class="on">streaming</button>
+      <button data-mode="rarest">rarest-first</button>
+    </div>
+    <div class="limits">
+      <label>cap down <select id="ldown"></select></label>
+      <label>cap up <select id="lup"></select></label>
+    </div>
+  </div>
+  <div class="why" id="why"></div>
+
+  <div class="map" id="map">
+    <div class="cells" id="cells"></div>
+    <div class="zone" id="zone"></div>
+    <div class="pin" id="pinh" style="left:0"></div>
+    <div class="pin" id="pint" style="right:0"></div>
+  </div>
+  <div class="legend" id="legend" style="display:none">
+    <span class="a">downloaded</span>
+    <span class="b">fetching now</span>
+    <span class="c">queued</span>
+  </div>
+
+  <div class="note" id="note"></div>
+  <div class="spin" id="spin">Looking for peers…</div>
+
+  <div class="status" id="stat"></div>
+
+  <div class="ab" id="ab">
+    <h2>Strategy comparison</h2>
+    <table><thead id="abhead"></thead><tbody id="abbody"></tbody></table>
+    <div class="abfoot">
+      <button id="rerun">Re-run cold in rarest-first</button>
+      <button id="clearab">Clear results</button>
+    </div>
+    <div class="caveat" id="caveat"></div>
+  </div>
+
+  <div class="title" id="title"></div>
+  <select id="files"></select>
+  <video id="vid" controls playsinline preload="metadata"></video>
+
+  <div class="pc" id="pc">
+    <button id="pp" title="Play / pause (k)">Play</button>
+    <button id="b10" title="Back 10 seconds (j)">−10s</button>
+    <button id="f10" title="Forward 10 seconds (l)">+10s</button>
+    <span class="clock" id="clock">--:-- / --:--</span>
+    <span class="buffering" id="buffering">buffering…</span>
+    <span class="gap"></span>
+    <button id="mute" title="Mute (m)">vol</button>
+    <input type="range" id="vol" min="0" max="1" step="0.02" value="1" title="Volume">
+    <span class="subwrap" id="subwrap">
+      <select id="subsel" title="Subtitles"><option value="">subs off</option></select>
+    </span>
+    <select id="rate" title="Playback speed">
+      <option value="0.5">0.5×</option>
+      <option value="0.75">0.75×</option>
+      <option value="1" selected>1×</option>
+      <option value="1.25">1.25×</option>
+      <option value="1.5">1.5×</option>
+      <option value="2">2×</option>
+    </select>
+    <button id="pip" title="Picture in picture (p)">PiP</button>
+    <button id="fs" title="Fullscreen (f)">Full</button>
+  </div>
+
+  <div class="keys" id="keys">
+    <kbd>space</kbd>/<kbd>k</kbd> play·pause &nbsp; <kbd>←</kbd><kbd>→</kbd> 5s &nbsp;
+    <kbd>j</kbd><kbd>l</kbd> 10s &nbsp; <kbd>shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 30s &nbsp;
+    <kbd>,</kbd><kbd>.</kbd> frame &nbsp; <kbd>↑</kbd><kbd>↓</kbd> volume &nbsp;
+    <kbd>m</kbd> mute &nbsp; <kbd>f</kbd> fullscreen &nbsp; <kbd>p</kbd> pip &nbsp;
+    <kbd>&lt;</kbd><kbd>&gt;</kbd> speed &nbsp; <kbd>0</kbd>–<kbd>9</kbd> seek to %
+  </div>
+
+  <div class="tracks" id="tracks"></div>
+
+  <div class="after" id="after">
+    <button id="resume" style="display:none"></button>
+    <button id="conv">Convert for browser</button>
+    <button id="copy">Copy stream URL</button>
+    <code id="url"></code>
+  </div>
+
+  <section class="panel" id="peers">
+    <h2>Swarm <button class="toggle" id="ptoggle">show</button></h2>
+    <div class="ptot" id="ptot"></div>
+    <div class="pbox" id="pbox">
+      <table class="ptab">
+        <thead><tr>
+          <th>peer</th><th>client</th><th>from</th>
+          <th class="c">they send / we send</th>
+          <th class="r">down</th><th class="r">up</th><th class="r">have</th>
+          <th>notes</th>
+        </tr></thead>
+        <tbody id="pbody"></tbody>
+      </table>
+      <p class="caveat" id="pnote"></p>
+    </div>
+  </section>
+
+  <section class="panel" id="meta">
+    <h2>Torrent metadata <button class="toggle" id="mtoggle">show</button></h2>
+    <div class="mbox" id="mbox">
+      <div class="derive" id="derive"></div>
+      <table class="facts" id="facts"></table>
+      <div class="trackers" id="trackers"></div>
+      <h3 class="tree-h">bencoded dictionary</h3>
+      <div class="tree" id="tree"></div>
+      <p class="caveat" id="mnote"></p>
+    </div>
+  </section>
+
+  <section class="panel" id="events">
+    <h2>Protocol events <button class="toggle" id="etoggle">show</button></h2>
+    <div class="ebox" id="ebox">
+      <div class="efilter" id="efilter"></div>
+      <div class="loud" id="loud"></div>
+      <div class="log" id="log"></div>
+      <div class="efoot">
+        <span id="estat"></span>
+        <label class="stick"><input type="checkbox" id="efollow" checked> follow</label>
+        <button id="eclear">Clear</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="/static/app.js"></script>

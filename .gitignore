@@ -1,0 +1,31 @@
+# Downloaded torrent data. The whole point of this app is that this gets big -
+# never commit it, and never let a 3 GB mkv near a git push.
+downloads/
+
+# libtorrent partial-file and resume state
+*.parts
+.*.parts
+*.fastresume
+*.resume
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# Local backups and scratch
+*.bak
+*.orig
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini

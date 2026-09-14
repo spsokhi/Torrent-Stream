@@ -1,0 +1,2 @@
+flask>=3.0
+libtorrent>=2.0
